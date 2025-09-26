@@ -21,34 +21,36 @@ public class Application {
             System.out.print("Enter command: ");
             String command = input.nextLine().trim();
             Matcher matcher;
-            if (command.equals("exit")) {
-                break;
-            } else if (command.equals("list")) {
-                listTasks(tasks);
-            } else if ((matcher = Patterns.listFilter.matcher(command)).find()) {
-                switch (matcher.group(1)) {
-                    case "todo":
-                        listTasksFiltered(tasks, Status.TO_DO);
-                        break;
-                    case "in-progress":
-                        listTasksFiltered(tasks, Status.IN_PROGRESS);
-                        break;
-                    case "done":
-                        listTasksFiltered(tasks, Status.DONE);
-                        break;
-                    default:
-                        break;
-                }
-            } else if ((matcher = Patterns.add.matcher(command)).find()) {
+            if ((matcher = Patterns.add.matcher(command)).find()) {
                 newTask(database, tasks, matcher.group(1).trim());
-            } else if ((matcher = Patterns.update.matcher(command)).find()) {
-                updateTask(database, tasks, Integer.parseInt(matcher.group(1)) - 1, matcher.group(2).trim());
-            } else if ((matcher = Patterns.delete.matcher(command)).find()) {
-                deleteTask(database, tasks, Integer.parseInt(matcher.group(1)) - 1);
-            } else if ((matcher = Patterns.markInProgress.matcher(command)).find()) {
-                markInProgress(database, tasks, Integer.parseInt(matcher.group(1)) - 1);
-            } else if ((matcher = Patterns.markDone.matcher(command)).find()) {
-                markDone(database, tasks, Integer.parseInt(matcher.group(1)) - 1);
+            } else if (!tasks.isEmpty()) {
+                if ((matcher = Patterns.update.matcher(command)).find()) {
+                    updateTask(database, tasks, Integer.parseInt(matcher.group(1)) - 1, matcher.group(2).trim());
+                } else if ((matcher = Patterns.delete.matcher(command)).find()) {
+                    deleteTask(database, tasks, Integer.parseInt(matcher.group(1)) - 1);
+                } else if ((matcher = Patterns.markInProgress.matcher(command)).find()) {
+                    markInProgress(database, tasks, Integer.parseInt(matcher.group(1)) - 1);
+                } else if ((matcher = Patterns.markDone.matcher(command)).find()) {
+                    markDone(database, tasks, Integer.parseInt(matcher.group(1)) - 1);
+                } else if (command.equals("list")) {
+                    listTasks(tasks);
+                } else if ((matcher = Patterns.listFilter.matcher(command)).find()) {
+                    switch (matcher.group(1)) {
+                        case "todo":
+                            listTasksFiltered(tasks, Status.TO_DO);
+                            break;
+                        case "in-progress":
+                            listTasksFiltered(tasks, Status.IN_PROGRESS);
+                            break;
+                        case "done":
+                            listTasksFiltered(tasks, Status.DONE);
+                            break;
+                        default:
+                            break;
+                    }
+                }
+            } else if (command.equals("exit")) {
+                break;
             } else {
                 System.out.println("Invalid command!");
             }
@@ -110,12 +112,14 @@ public class Application {
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(database))) {
             bw.write("[");
             bw.newLine();
-            for (int i = 0; i < tasks.size() - 1; i++) {
-                bw.write(tasks.get(i).toString() + ',');
+            for (int i = 0; i < tasks.size(); i++) {
+                if (i == tasks.size() - 1) {
+                    bw.write(tasks.get(i).toString());
+                } else {
+                    bw.write(tasks.get(i).toString() + ',');
+                }
                 bw.newLine();
             }
-            bw.write(tasks.getLast().toString());
-            bw.newLine();
             bw.write("]");
         } catch (IOException e) {
             throw new RuntimeException(e);
